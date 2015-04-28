@@ -1,0 +1,11 @@
+---
+# Sets the hosts file
+
+- name: Create an .ssh config file to allow bastion host
+  template: src=config dest=~/.ssh/config owner=ubuntu 
+
+#- name: run ssh agent
+#  command : "eval ssh-agent -s"
+
+#- name: add ssh key to agent
+#  command : "ssh-add"

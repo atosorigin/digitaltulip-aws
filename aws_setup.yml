@@ -1,0 +1,34 @@
+---
+
+- hosts: localhost
+  connection: local
+  roles:
+   - ssh
+
+- hosts: tag_class_{{env}}-jumpserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys
+
+- hosts: tag_class_{{env}}-iamserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys
+
+- hosts: tag_class_{{env}}-haproxyserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys
+
+- hosts: tag_class_{{env}}-portalserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys

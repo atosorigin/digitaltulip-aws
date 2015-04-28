@@ -1,0 +1,18 @@
+---
+# Sets the hosts file
+
+- name: Create each user an put in sudo
+  user: name="{{ item.value.name }}"
+        state=present
+        shell=/bin/bash
+        groups="sudo"
+        password="D1g1talTul1p"
+  with_dict: users
+
+
+- name: Add authorized keys for each user
+  authorized_key: user="{{ item.value.name }}"
+                  key="{{item.value.sshkey}}"
+                  manage_dir=yes
+                  state=present
+  with_dict: users
