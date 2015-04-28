@@ -1,0 +1,20 @@
+{% for jump in groups[ec2_security_group] %}
+    {% if 'jump' in hostvars[jump]['ec2_tag_dnsname'] %}
+
+Host {{hostvars[jump]['ec2_private_dns_name']}}
+User ubuntu
+HostName {{hostvars[jump]['ec2_ip_address']}}
+        {% set jumpserver = hostvars[jump]['ec2_private_dns_name'] %}
+        {% for host in groups[ec2_security_group]%}
+            {% if 'jump' not in hostvars[host]['ec2_tag_dnsname'] %}
+
+Host {{hostvars[host]['ec2_private_dns_name']}}
+HostName {{hostvars[host]['ec2_private_ip_address']}}
+ProxyCommand           ssh -A ubuntu@{{jumpserver}} -W %h:%p
+User                   ubuntu
+ForwardAgent           yes
+
+            {% endif %} 
+        {% endfor %}
+    {% endif %} 
+{% endfor %}

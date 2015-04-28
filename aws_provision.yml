@@ -1,0 +1,181 @@
+--- 
+#iam.y
+- name : Create AWS instances
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+  - name: Create VPC
+    ec2_vpc:
+        state: present
+        cidr_block: 10.0.0.0/16
+        resource_tags: {"Environment":"{{env}}"}
+        dns_hostnames: yes
+        dns_support: yes
+        internet_gateway: yes
+        subnets:
+        - cidr: 10.0.0.0/24
+          az: "{{aws_az}}"
+          resource_tags: {"Environment":"{{env}}", "Tier" : "All"}
+        route_tables:
+          - subnets:
+              - 10.0.0.0/24
+            routes:
+              - dest: 0.0.0.0/0
+                gw: igw
+        region: "{{aws_region}}"
+        wait: yes
+    register: vpc
+  - name: Create security group
+    ec2_group:
+        name: "{{security_group}}"
+        description: "A Security group for {{env}}"
+        region: "{{aws_region}}"
+        vpc_id: "{{vpc.vpc_id}}"
+        rules:
+        - proto: tcp
+          type: ssh
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0
+          rules_egress:
+          - proto: all
+            type: all
+            cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          type: rdp
+          from_port: 3389
+          to_port: 3389
+          cidr_ip: 0.0.0.0/0
+          rules_egress:
+          - proto: all
+            type: all
+            cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          type: http
+          from_port: 80
+          to_port: 80
+          cidr_ip: 0.0.0.0/0
+          rules_egress:
+          - proto: all
+            type: all
+            cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          type: tcp
+          from_port: 5986
+          to_port: 5986
+          cidr_ip: "{{teamcity_ip}}/0"
+          rules_egress:
+          - proto: all
+            type: all
+            cidr_ip: "{{teamcity_ip}}/0"
+        - proto: tcp
+          type: https
+          from_port: 443
+          to_port: 443
+          cidr_ip: 0.0.0.0/0
+          rules_egress:
+          - proto: all
+            type: all
+            cidr_ip: 0.0.0.0/0
+        - proto: all
+          type: all
+          from_port: any
+          to_port: any
+          cidr_ip: 10.0.0.0/24
+    register: basic_firewall
+  - name: Provision a jump server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - Jump"
+          class: "{{env}}-jumpserver"
+          dnsname: jump{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - Jump"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: jump_ec2 
+  - name: Provision an HAProxy server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - HAProxy"
+          class: "{{env}}-haproxyserver"
+          dnsname: haproxy{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - HAProxy"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: hap_ec2
+  - name: Provision an Portal server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - Portal-Web"
+          class: "{{env}}-portalserver"
+          dnsname: portal{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - Portal-Web"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: portal_ec2
+  - name: Provision an IAM server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - IAM"
+          class: "{{env}}-iamserver"
+          dnsname: iam{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - IAM"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.medium
+        assign_public_ip: yes
+  - name: Provision an AD server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - AD"
+          class: "{{env}}-adserver"
+          dnsname: ad{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - AD"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_win_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.medium
+        assign_public_ip: yes
+        user_data: "<powershell>Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force\n $storageDir = $pwd\n $webclient = New-Object System.Net.WebClient\n $url = \"https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1\"\n $file = \"C:\\Program Files\\Amazon\\Ec2ConfigService\\Scripts\\ConfigureRemotingForAnsible.ps1\"\n $webclient.DownloadFile($url,$file)\n $VerbosePreference=\"Continue\"\n & $file\n $user=[adsi]\"WinNT://localhost/{{windows_ssh_user}},user\"\n $user.SetPassword(\"{{windows_ssh_pass}}\")\n </powershell>"
+  - name: Provision an Mid server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - Midserver"
+          class: "{{env}}-midserver"
+          dnsname: mid{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - Midserver"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_win_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.medium
+        assign_public_ip: yes
+        user_data: "<powershell>Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force\n $storageDir = $pwd\n $webclient = New-Object System.Net.WebClient\n $url = \"https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1\"\n $file = \"C:\\Program Files\\Amazon\\Ec2ConfigService\\Scripts\\ConfigureRemotingForAnsible.ps1\"\n $webclient.DownloadFile($url,$file)\n $VerbosePreference=\"Continue\"\n & $file\n $user=[adsi]\"WinNT://localhost/{{windows_ssh_user}},user\"\n $user.SetPassword(\"{{windows_ssh_pass}}\")\n </powershell>"

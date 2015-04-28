@@ -1,0 +1,5 @@
+---
+# Sets the hosts file
+
+- name: Looping hosts
+  template: src=hosts dest=/etc/hosts
