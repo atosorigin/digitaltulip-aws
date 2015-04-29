@@ -1,0 +1,11 @@
+ami_id: ami-234ecc54
+ami_win_id: ami-972a4ae0
+aws_region: eu-west-1
+aws_subnet: subnet-fb263699
+aws_key: Teamcity_New
+aws_az: eu-west-1a
+windows_ssh_user: Administrator
+base_domain: ".{{env}}.digitaltulip.net"
+security_group: "{{env}}_security"
+ec2_security_group: "security_group_{{env}}_security"
+teamcity_ip: 54.247.85.187
