@@ -1,12 +1,11 @@
 --- 
 #iam.y
-- vars_files:
-  - enc.yml
-
 - name : Create AWS instances
   hosts: localhost
   connection: local
   gather_facts: false
+  vars_files:
+   - enc.yml
   tasks:
   - name: Create VPC
     ec2_vpc:
