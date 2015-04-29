@@ -67,10 +67,6 @@
           from_port: 5986
           to_port: 5986
           cidr_ip: "{{teamcity_ip}}/0"
-          rules_egress:
-          - proto: all
-            type: all
-            cidr_ip: "{{teamcity_ip}}/0"
         - proto: tcp
           type: https
           from_port: 443
