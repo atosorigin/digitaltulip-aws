@@ -1,4 +1,6 @@
 ---
+- vars_files:
+  - enc.yml
 
 - hosts: localhost
   connection: local
