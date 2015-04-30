@@ -7,6 +7,6 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 
-{% for host in groups['security_group_dev_security'] %}   
+{% for host in groups['security_group_' ~ env ~ '_security'] %}   
 {{hostvars[host]['ec2_private_ip_address']}} {{hostvars[host]['ec2_tag_dnsname']}}
 {% endfor %}
