@@ -130,6 +130,22 @@
         instance_type: t2.micro
         assign_public_ip: yes
     register: portal_ec2
+  - name: Provision an FIP Node server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - FIPNode-Web"
+          class: "{{env}}-fipnodeserver"
+          dnsname: fipnode{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - FIP-Node"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: fipnode_ec2
   - name: Provision an IAM server
     ec2:
         key_name: '{{ aws_key }}'
