@@ -146,6 +146,38 @@
         instance_type: t2.micro
         assign_public_ip: yes
     register: fipnode_ec2
+  - name: Provision an Backbase Web server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - BB-Web"
+          class: "{{env}}-bbwebserver"
+          dnsname: bbweb{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - BB-Web"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: bbweb_ec2
+  - name: Provision an Backbase Database server
+    ec2:
+        key_name: '{{ aws_key }}'
+        instance_tags:
+          Name: "{{env}} - BB-DB"
+          class: "{{env}}-bbdbserver"
+          dnsname: bbdb{{base_domain}}
+        exact_count: 1
+        count_tag: {Name: "{{env}} - BB-DB"}
+        group_id: "{{basic_firewall.group_id}}"
+        vpc_subnet_id: "{{ vpc.subnets[0].id }}"
+        image: '{{ ami_id }}'
+        region: '{{aws_region}}'
+        instance_type: t2.micro
+        assign_public_ip: yes
+    register: bbdb_ec2
   - name: Provision an IAM server
     ec2:
         key_name: '{{ aws_key }}'
