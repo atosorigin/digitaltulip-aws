@@ -31,3 +31,17 @@
   roles:
    - localhosts
    - authorizedkeys
+
+- hosts: tag_class_{{env}}-bbwebserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys
+
+- hosts: tag_class_{{env}}-bbdbserver
+  remote_user: ubuntu
+  sudo: yes
+  roles:
+   - localhosts
+   - authorizedkeys

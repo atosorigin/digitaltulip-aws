@@ -138,7 +138,7 @@
           class: "{{env}}-fipnodeserver"
           dnsname: fipnode{{base_domain}}
         exact_count: 1
-        count_tag: {Name: "{{env}} - FIP-Node"}
+        count_tag: {Name: "{{env}} - FIPNode-Web"}
         group_id: "{{basic_firewall.group_id}}"
         vpc_subnet_id: "{{ vpc.subnets[0].id }}"
         image: '{{ ami_id }}'
