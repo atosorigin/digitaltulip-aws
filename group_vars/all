@@ -2,7 +2,7 @@ ami_id: ami-5189a661
 ami_win_id: ami-67c7ff57
 aws_region: us-west-2
 aws_subnet: subnet-fb263699
-aws_key: TeamCity
+aws_key: UbuntuOnTeamcity
 aws_az: us-west-2c
 windows_ssh_user: Administrator
 base_domain: ".{{env}}.canopy-cloud.com"
