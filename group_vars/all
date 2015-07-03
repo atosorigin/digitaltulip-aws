@@ -1,5 +1,5 @@
-ami_id: ami-234ecc54
-ami_win_id: ami-972a4ae0
+ami_id: ami-5189a661
+ami_win_id: ami-67c7ff57
 aws_region: us-west-2
 aws_subnet: subnet-fb263699
 aws_key: Teamcity
