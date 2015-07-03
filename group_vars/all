@@ -3,7 +3,7 @@ ami_win_id: ami-972a4ae0
 aws_region: us-west-2
 aws_subnet: subnet-fb263699
 aws_key: Teamcity
-aws_az: eu-west-2cs
+aws_az: eu-west-2c
 windows_ssh_user: Administrator
 base_domain: ".{{env}}.digitaltulip.net"
 security_group: "{{env}}_security"
