@@ -5,7 +5,7 @@ aws_subnet: subnet-fb263699
 aws_key: TeamCityDefaultKey
 aws_az: eu-west-1a
 windows_ssh_user: Administrator
-base_domain: ".{{env}}.digitaltulip.net";
+base_domain: ".{{env}}.digitaltulip.net"
 security_group: "{{env}}_security"
 ec2_security_group: "security_group_{{env}}_security"
 teamcity_ip: 52.31.33.173
